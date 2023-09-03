@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<ul id="warp"></ul>
+<script>
+    const arrTime = ["8:01", "9:30", "11:50"];
+
+
+    function calcAvgTime(arr) {
+        let result = 0
+        arr.forEach(el => {
+            result += new Date('2000/01/01 ' + el).getTime()
+        })
+        const a = new Date(result / arr.length)
+        return `${a.getHours()}:${a.getMinutes()}`
+    }
+    function calcAvgTime2(arr) {
+        const res = arr.map(item => {
+            const it = item.split(":");
+            item = Number(it[0] * 60) + Number(it[1])
+            return item
+
+        })
+        const avg = res.reduce((pre, cur) => pre + cur) / res.length;
+        let hour = Math.floor(avg / 60);
+        let minute = Math.floor(avg % 60)
+        return `${hour}:${minute}`
+    }
+    function calcAvgTime1(arr) {
+        const res = arr.map(item => {
+            const [hours, minutes] = item.split(":").map(Number);
+            return hours * 60 + minutes;
+        });
+        const avg = res.reduce((pre, cur) => pre + cur) / res.length;
+        const hour = Math.floor(avg / 60);
+        const minute = Math.round(avg % 60);
+        return `${hour}:${minute}`;
+    }
+
+    console.log(calcAvgTime(arrTime));
+    console.log(calcAvgTime1(arrTime));
+
+
+</script>
+</body>
+</html>

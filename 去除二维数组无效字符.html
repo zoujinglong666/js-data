@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+  const arr = [
+    ['123','456','789'],
+    ['234','-','567'],
+    ['890','*','?'],
+  ]
+
+
+  const clearData = (arr)=>{
+    const rowLen = arr.length;
+    for(let i = 0 ; i< rowLen ; i++){
+      const columnLen = arr[i].length;
+      for(let j = 0;j< columnLen;j++){
+        if(!Number(arr[i][j])){
+          arr[i][j] = ""
+        }
+      }
+    }
+    return arr;
+  }
+  console.log(clearData(arr));
+
+  var b = 10;
+  (function b(){
+    b = 20;
+    console.log(b);
+  })();
+
+</script>
+
+</body>
+</html>

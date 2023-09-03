@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+    const arr = [
+        {
+            "fileName": "XX_NCS_FBC_20230827_2023082709_NMFC.doc",
+            "fileNameType": "灾害警报",
+            "message": "2023年 8 月 27 日 09 时               签发：发布null",
+            "publishTime": "2023年 8 月 27 日 09 时               签发：",
+            "remark": "灾害警报(风暴潮消息)",
+            "type": "1"
+        },
+        {
+            "fileName": "XX_SD_FBC_20230827_2023082709_SDMF.doc",
+            "fileNameType": "灾害警报",
+            "message": "2023年 8 月 27 日 09 时               签发：发布null",
+            "publishTime": "2023年 8 月 27 日 09 时               签发：",
+            "remark": "灾害警报(风暴潮消息)",
+            "type": "1"
+        },
+        {
+            "fileName": "XX_NCS_HL_23082708_NMFC.doc",
+            "fileNameType": "灾害警报",
+            "message": "2023年8月27日08时                   签发：发布null",
+            "publishTime": "2023年8月27日08时                   签发：",
+            "remark": "灾害警报(海浪消息)",
+            "type": "1"
+        },
+        {
+            "fileName": "JB_NCS_HL_B2023082701_2023082714_NMFC.doc",
+            "fileNameType": "灾害警报",
+            "level": "海浪蓝色警报",
+            "message": "2023年8月27日14时发布海浪蓝色警报",
+            "publishTime": "2023年8月27日14时",
+            "remark": "灾害警报(海浪警报)",
+            "type": "1"
+        },
+        {
+            "fileName": "JB_SD_FBC_BWD23082701_2023082716_SDMF.doc",
+            "fileNameType": "灾害警报",
+            "level": "风暴潮Ⅳ级警报（蓝色）",
+            "message": "2023年08月27日16时发布风暴潮Ⅳ级警报（蓝色）",
+            "publishTime": "2023年08月27日16时",
+            "remark": "灾害警报(风暴潮警报)",
+            "type": "1"
+        },
+        {
+            "fileName": "JB_NCS_FBC_BWD23082701_2023082716_NMFC.doc",
+            "fileNameType": "灾害警报",
+            "level": "风暴潮Ⅳ级警报（蓝色）",
+            "message": "2023年08月27日16时发布风暴潮Ⅳ级警报（蓝色）",
+            "publishTime": "2023年08月27日16时",
+            "remark": "灾害警报(风暴潮警报)",
+            "type": "1"
+        },
+        {
+            "fileName": "JB_NCS_FBC_BWD23082702_2023082808_NMFC.doc",
+            "fileNameType": "灾害警报",
+            "level": "风暴潮Ⅳ级警报（蓝色）",
+            "message": "2023年08月28日08时发布风暴潮Ⅳ级警报（蓝色）",
+            "publishTime": "2023年08月28日08时",
+            "remark": "灾害警报(风暴潮警报)",
+            "type": "1"
+        },
+        {
+            "fileName": "JB_SD_FBC_BWD23082702_2023082808_SDMF.doc",
+            "fileNameType": "灾害警报",
+            "level": "风暴潮Ⅳ级警报（蓝色）",
+            "message": "2023年08月28日08时发布风暴潮Ⅳ级警报（蓝色）",
+            "publishTime": "2023年08月28日08时",
+            "remark": "灾害警报(风暴潮警报)",
+            "type": "1"
+        }];
+    const listMap = {
+        fbc: [],
+        hl: [],
+    }
+
+
+
+    console.log(listMap)
+    const otherData = new Set(arr)
+
+    const keys = Object.keys(listMap)
+    keys.forEach((key, index) => {
+        listMap[key] = arr.filter(item => {
+            const matched = item.fileName.indexOf(key.toUpperCase()) !== -1;
+            if (matched){
+                otherData.delete(item)
+            }
+
+            return matched
+        })
+    })
+
+    console.log(listMap)
+
+
+</script>
+
+</body>
+</html>

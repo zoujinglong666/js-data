@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+<script>
+
+    const url = `https://www.baidu.com/s?tn=15007414_6_dg&ie=utf-8&wd=baidu`
+
+    function getParams(url) {
+        const params = new URLSearchParams(url);
+        return Object.fromEntries(params.entries())
+
+    }
+
+    console.log(getParams(url));
+
+
+    function getParams1(url) {
+
+        if(url.indexOf(`?`)){
+            const str = url.split(`?`)[1];
+            const arr = str.split(`&`);
+            const res = {}
+            arr.forEach(item => {
+                const key = item.split('=')[0]
+                const value = item.split('=')[1]
+                res[key] = decodeURIComponent(value)
+            })
+            return res
+        }
+
+
+
+
+    }
+    console.log(getParams1(url));
+
+</script>
+
+</body>
+</html>

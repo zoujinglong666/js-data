@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+
+
+
+  const arr=[1,1,1,1];
+
+  console.log(arr.every(item => item === arr[0]));
+  function checkArrayItems(array) {
+    return array.reduce((acc, item) => acc && item === array[0], true);
+  }
+
+  console.log(checkArrayItems(arr));
+
+</script>
+
+</body>
+</html>

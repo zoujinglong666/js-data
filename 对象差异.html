@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+
+
+    const oldObj = {
+        sex: '女',
+        age: 18,
+        num: 20000,
+        obj:{
+            obj:'1'
+        },
+        list:[1,2,3,5]
+    }
+    const newObj = {
+        sex: '男',
+        hello: true,
+        age: 18,
+        num: 3000,
+        obj:{
+            obj:'2'
+        },
+        list:[1,2,3,4,0]
+    }
+
+
+    function diffObj(oldObj, newObj) {
+        const mergeObj = {...oldObj, ...newObj};
+        Object.keys(oldObj).forEach(key => {
+            if (oldObj[key] === mergeObj[key]) {
+                delete mergeObj[key];
+            } else if (Array.isArray(oldObj[key]) && Array.isArray(mergeObj[key])) {
+                if (JSON.stringify(oldObj[key]) !== JSON.stringify(mergeObj[key])) {
+                    mergeObj[key] = newObj[key];
+                }
+            } else if (typeof oldObj[key] === 'object' && typeof mergeObj[key] === 'object') {
+                mergeObj[key] = diffObj(oldObj[key], mergeObj[key]);
+            }
+        });
+        return mergeObj;
+    }
+    //
+    var diffObj1 = diffObj(oldObj, newObj);
+    console.log(diffObj1)
+
+
+
+
+    //
+    // function diffObj2(obj1, obj2) {
+    //     if (obj1 === obj2) {
+    //         return true;
+    //     }
+    //     if (typeof obj1 !== 'object' || typeof obj2 !== 'object' || obj1 === null || obj2 === null) {
+    //         return false;
+    //     }
+    //     const keys1 = Object.keys(obj1);
+    //     const keys2 = Object.keys(obj2);
+    //     if (keys1.length !== keys2.length) {
+    //         return false;
+    //     }
+    //     for (const key of keys1) {
+    //         if (!keys2.includes(key) || !diffObj(obj1[key], obj2[key])) {
+    //             return false;
+    //         }
+    //     }
+    //     return true;
+    // }
+
+    // const arr = [
+    //     {'item': 'aaa', 'model': '9×9×9', 'stock': '成品仓', 'qty': 100},
+    //     {'item': 'bbb', 'model': '5×5×5', 'stock': '成品仓', 'qty': 200},
+    //     {'item': 'ccc', 'model': '8×8×8', 'stock': '成品仓', 'qty': 400}
+    // ]
+    //
+    // const arr1 = [
+    //     {'item': 'aaa', 'qty': 888},
+    //     {'item': 'ccc', 'qty': 999},
+    //     {'item': '', 'qty': ''},
+    //     {'item': '', 'qty': ''},
+    //     {'item': '', 'qty': ''},
+    // ]
+    // let list = arr.filter(it => arr1.some(it2 => it2.item === it.item))
+    // const finder = arr1.find(it1 => it1.item === it.item);
+    //
+    // list = list.map(it => {
+    //
+    //     return {
+    //         ...it,
+    //         qty: finder.qty ? finder.qty : ''
+    //     }
+    // })
+    // console.log(list)
+
+
+    const arr = [
+        {"fields": {"itemname": "aaa", "qty": 100}, "billno": "a001"},
+        {"fields": {"itemname": "bbb", "qty": 300}, "billno": "a002"},
+        {"fields": {"itemname": "ccc", "qty": 200}, "billno": "a004"},
+        {"fields": {"itemname": "eee", "qty": 800}, "billno": "a006"},
+    ]
+
+    // const newArr=arr.map(item => {
+    //     const fields=item.fields
+    //     delete item.fields
+    //
+    //     return {
+    //         ...item,
+    //         ...fields,
+    //
+    //     }
+    // })
+
+    const newArr2 = arr.map(({fields, billno}) => {
+        return {
+            ...fields,
+            billno: billno
+        }
+    })
+
+    console.log(newArr2)
+    // console.log(newArr)
+
+
+    // const str = "[THEDTAE][2023-05-09][2023-05-10]|[QTYPE][1]|[UNITTYPE][2]";
+    // const arr = str.split("|");
+    //
+    // const reg = /\[(.+?)\]/g;;
+    //
+    // const obj = arr.reduce((obj, item) => {
+    //     const match = [...item.matchAll(reg)];
+    //     console.log(match,'match')
+    //     if (match.length) {
+    //         obj[match[0][1]] = match.length > 2
+    //             ? match.slice(1).map(item => item[1])
+    //             : match[1] && match[1][1]
+    //     }
+    //     return obj;
+    // }, {});
+    //
+    // console.log(obj, "obj")
+    // // { THEDTAE: [ '2023-05-09', '2023-05-10' ], QTYPE: '1', UNITTYPE: '2' } obj
+    //
+    // function transform(str) {
+    //     var ret = {};
+    //     var reg = /\[(.+?)\]/g;
+    //     var arr = str.split("|");
+    //     for (var i = 0; i < arr.length; ++i) {
+    //         var match, key, value = [];
+    //         while (match = reg.exec(arr[i])) value.push(match[1]);
+    //         if (key = value.shift()) {
+    //             if (value.length <= 1) value += "";
+    //             ret[key] = value;
+    //         }
+    //     }
+    //     return ret;
+    // }
+    // console.log(transform("[THEDTAE][2023-05-09][2023-05-10]|[QTYPE][1]|[UNITTYPE][2]"),'1');
+
+    const arr2 = [
+        {"itemname": "aaa", "qty": 100, "billno": "a001"},
+        {"itemname": "bbb", "qty": 300, "billno": "a002"},
+        {"itemname": "ccc", "qty": 200, "billno": "a004"},
+        {"itemname": "eee", "qty": 800, "billno": "a006"}
+    ]
+    const list2 = arr2.map(({billno, ...rect}) => {
+        return {
+            fields: {
+                ...rect
+            },
+            billno: billno
+        }
+    })
+    function deepProxy(target) {
+        const changedValues = {};
+        const handler = {
+            set: function (obj, prop, value) {
+                console.log(`属性 ${prop} 被设置为 ${value}`);
+                obj[prop] = value;
+                changedValues[prop] = value;
+                return true;
+            },
+            get: function (obj, prop) {
+                if (typeof obj[prop] === "object" && obj[prop] !== null) {
+                    // Handle arrays
+                    if (Array.isArray(obj[prop])) {
+                        return new Proxy(obj[prop], arrayHandler);
+                    }
+                    // Handle objects
+                    return new Proxy(obj[prop], handler);
+                }
+                return obj[prop];
+            },
+        };
+
+        const arrayHandler = {
+            set: function (obj, prop, value) {
+                console.log(`属性 ${prop} 被设置为 ${value}`);
+                obj[prop] = value;
+                if (!isNaN(prop)) {
+                    changedValues[obj.length] = obj.slice();
+                }
+                return true;
+            },
+            get: function (obj, prop) {
+                if (typeof obj[prop] === "object" && obj[prop] !== null) {
+                    // Handle arrays
+                    if (Array.isArray(obj[prop])) {
+                        return new Proxy(obj[prop], arrayHandler);
+                    }
+                    // Handle objects
+                    return new Proxy(obj[prop], handler);
+                }
+                return obj[prop];
+            },
+        };
+
+        const proxy = new Proxy(target, handler);
+
+        return {
+            proxy,
+            changedValues,
+        };
+    }
+
+    const obj = {
+        a: 1,
+        b: {
+            c: 2,
+            d: {
+                e: 3,
+            },
+        },
+        f: [4, 5, { g: 6 }],
+    };
+
+
+
+
+    const { proxy, changedValues } = deepProxy(obj);
+
+    proxy.a = 7;
+    proxy.b.c = 8;
+    proxy.b.d.e = 9;
+    proxy.f[0] = 10;
+    proxy.f[2].g = 11;
+
+    console.log(changedValues)
+
+</script>
+
+</body>
+</html>

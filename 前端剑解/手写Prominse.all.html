@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+<script>
+
+
+    Promise.myAll = function (iterableObj) {
+
+
+        return new Promise((resolve, reject) => {
+
+            let count = 0;
+            let result = []
+            let doneCount = 0;
+            for (const item of iterableObj) {
+                //先存一个index
+                let index = count;
+
+                Promise.resolve(item).then(res => {
+                    //然后再这里进行访问，实际这里就是一个闭包
+                    //闭包:可以在函数的外部访问到函数内部的局部变量。
+                    result[index] = res;
+                    doneCount += 1
+                    if (doneCount === count) {
+                        resolve(result)
+                    }
+
+                }).catch(reject)
+
+                count += 1
+
+
+            }
+
+
+        })
+
+    }
+
+
+    const pro1 = new Promise((resolve, reject) => {
+
+
+        setTimeout(() => {
+            resolve(1)
+        }, 2000)
+
+    })
+
+    const pro2 = 'hello';
+
+    Promise.myAll([pro1, pro2]).then(res => {
+        console.log(res,'myAll')
+    })
+    Promise.all([pro1, pro2]).then(res => {
+
+        console.log(res,'all')
+    })
+
+
+</script>
+
+</body>
+</html>

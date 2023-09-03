@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+
+
+  const arr=[[1,3],[5,7],[9,10]]
+ const arr2 = arr.flat(Infinity);
+ const arr1= arr.reduce((arr,item)=>{
+    return arr.concat(item)
+  });
+  console.log(arr1,'arr1')
+
+ // 多维数组转一维数组
+
+  function flatArr(arr){
+    return arr.reduce((pre,cur)=>{
+      return pre.concat(Array.isArray(cur)?flatArr(cur):cur)
+    },[])
+  }
+
+  console.log(flatArr(arr));
+
+  function deepProxy(target, path = []) {
+      const changedValues = {};
+      const handler = (path) => ({
+          set: function (obj, prop, value) {
+              console.log(`属性 ${prop} 被设置为 ${value}`);
+              obj[prop] = value;
+              setChangedValue(changedValues, [...path, prop], value);
+              return true;
+          },
+          get: function (obj, prop) {
+              if (typeof obj[prop] === "object" && obj[prop] !== null) {
+                  // 处理数组
+                  if (Array.isArray(obj[prop])) {
+                      return new Proxy(obj[prop], arrayHandler([...path, prop]));
+                  }
+                  // 处理对象
+                  return new Proxy(obj[prop], handler([...path, prop]));
+              }
+              return obj[prop];
+          },
+      });
+      const arrayHandler = (path) => ({
+          set: function (obj, prop, value) {
+              obj[prop] = value;
+              if (!isNaN(prop)) {
+                  const copiedObj = JSON.parse(JSON.stringify(obj));
+                  setChangedValue(changedValues, [...path, prop], copiedObj);
+              }
+              return true;
+          },
+          get: function (obj, prop) {
+              if (typeof obj[prop] === "object" && obj[prop] !== null) {
+// 处理数组
+                  if (Array.isArray(obj[prop])) {
+                      return new Proxy(obj[prop], arrayHandler([...path, prop]));
+                  }
+// 处理对象
+                  return new Proxy(obj[prop], handler([...path, prop]));
+              }
+              return obj[prop];
+          },
+      });
+
+      const proxy = new Proxy(target, handler(path));
+
+      return {
+          proxy,
+          changedValues,
+      };
+  }
+
+  function setChangedValue(obj, path, value) {
+      const lastIndex = path.length - 1;
+      for (let i = 0; i < lastIndex; i++) {
+          const prop = path[i];
+          if (!(prop in obj)) {
+              obj[prop] = typeof path[i + 1] === "number" ? [] : {};
+          }
+          obj = obj[prop];
+      }
+      obj[path[lastIndex]] = value;
+  }
+
+  const obj = {
+      a: 1,
+      b: {
+          c: 2,
+          d: {
+              e: 3,
+          },
+      },
+      f: [4, 5, {g: 6}],
+  };
+
+
+  const {proxy, changedValues} = deepProxy(obj);
+
+  proxy.a = 7;
+  proxy.b.c = 8;
+  proxy.b.d.e = 9;
+  proxy.f[0] = 10;
+  proxy.f[2].g = 11;
+
+  console.log(changedValues)
+
+</script>
+
+</body>
+</html>

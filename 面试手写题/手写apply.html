@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+    Function.prototype.myApply = function (context, args) {
+        if (typeof this !== "function") {
+            throw new Error("Type error");
+        }
+
+        context = context || window;
+        const fnSymbol = Symbol();
+        context[fnSymbol] = this;
+
+        let result;
+        if (args && Array.isArray(args)) {
+            result = context[fnSymbol](...args);
+        } else {
+            result = context[fnSymbol]();
+        }
+
+        delete context[fnSymbol];
+        return result;
+    }
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+
+  // 代理监听对象、数组属性值变动，并返回。
+  // 第一个参数target，源对象：对象、数组
+  // 第二个参数trackResult是变动的结果集
+  export const trackProxy = (target: any, trackResult: object | Array<any>) => {
+    let objProxy = null;
+    if (isObject(target)) {
+      objProxy = setObjProxy(target, trackResult);
+      for (let key in target) {
+        if (isObject(target[key])) {
+//多层对象：做递归处理
+//定义下级对象变量引用
+          let subTrackResult = (trackResult[key] = {});
+          target[key] = trackProxy(target[key], subTrackResult);
+        } else if (isArray(target[key])) {
+//对象下数组：对数组本身及项下对象做一层代理；
+          trackResult[key] = [];
+          target[key] = setObjProxy(target[key], trackResult[key]);
+          for (let i = 0; i < target[key].length; i++) {
+            let subTrackResult = (trackResult[key][i] = {});
+            if (isObject(target[key][i])) {
+              target[key][i] = setArrayProxy(target[key][i], subTrackResult);
+            }
+          }
+        } else {
+          objProxy = setObjProxy(target, trackResult);
+        }
+      }
+    } else if (isArray(target)) {
+      objProxy = setObjProxy(target, trackResult);
+      for (let i = 0; i < target.length; i++) {
+        let subTrackResult = (trackResult[i] = {});
+        if (isObject(target[i])) {
+          target[i] = setArrayProxy(target[i], subTrackResult);
+        }
+      }
+    }
+    return objProxy;
+  };
+  const setObjProxy = (obj: object, trackResult: object) => {
+    const originObj = JSON.parse(JSON.stringify(obj));
+    return new Proxy(obj, {
+      set: function (target, key, newVal) {
+// console.log("obj", target, key, newVal);
+        target[key] = newVal;
+//收集变动结果集
+        if (isObject(target)) {
+          trackResult[key] = newVal;
+//与源数据一样则删除；只保留变动后不一样的数据；
+          if (originObj[key] == trackResult[key]) {
+            delete trackResult[key];
+          }
+        }
+//数组长度相关变动进这里
+        if (isArray(target)) {
+          let newVal2 = JSON.parse(JSON.stringify(newVal));
+          if (isObject(newVal) && newVal[ROW_KEY]) {
+            removeInvalidRowKey(newVal2)
+          }
+//对象的数据变动与源数据一致时不做处理，其他都跟踪赋值
+          if (
+                  !(
+                          isObject(newVal2) &&
+                          JSON.stringify(originObj[key]) == JSON.stringify(newVal2)
+                  )
+          ) {
+            trackResult[key] = newVal2;
+//数组新增时要设置新加对象响应
+            if (isObject(newVal2) && !isProxy(newVal2)) {
+              target[key] = setArrayProxy(newVal2, trackResult[key]);
+            }
+          }
+        }
+        return true;
+      },
+    });
+  };
+  //数组长度不变，数据相关变动进这里
+  const setArrayProxy = (obj: object, trackResult: object) => {
+    const originObj = JSON.parse(JSON.stringify(obj));
+    return new Proxy(obj, {
+      set: function (target, key, newVal) {
+// console.log("arr", target, key, newVal);
+        target[key] = newVal;
+        if (key !== ROW_KEY) {
+//收集变动结果集
+          trackResult = Object.assign(trackResult, target)
+
+          removeInvalidRowKey(trackResult)
+        }
+        return true;
+      },
+    });
+  };
+
+  const removeInvalidRowKey=(params:object)=>{
+    if(params.hasOwnProperty(ROW_KEY)){
+      delete params[ROW_KEY];
+    }
+    if(params.hasOwnProperty('id') && isNaN(params['id'])){
+      delete params['id'];
+    }
+  }
+</script>
+
+</body>
+</html>

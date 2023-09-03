@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script>
+    const list = [
+        {id: 1, title: "党委组织部", desc: ""},
+        {id: 2, title: "财务部", desc: ""},
+        {id: 3, title: "党委组织部", desc: ""},
+        {id: 4, title: "党委组织部", desc: ""},
+        {id: 5, title: "人事部", desc: ""},
+        {id: 6, title: "人事部", desc: ""},
+        {id: 7, title: "人事部", desc: ""}
+    ];
+    list.forEach((item, index) => {
+        item.show = index === list.findIndex(item1 => item1.title === item.title)
+    })
+    console.log(list, 'list')
+
+</script>
+
+
+</body>
+</html>

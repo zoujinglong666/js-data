@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+
+
+    function red() {
+        console.log('red')
+    }
+
+    function green() {
+        console.log('green')
+    }
+
+    function yellow() {
+        console.log('yellow')
+    }
+
+    const task = (timer, lingh,callback) => {
+
+            setTimeout(() => {
+                if (lingh === 'red') {
+                    red();
+                }
+                if (lingh === 'green') {
+                    green()
+                }
+
+                if (lingh === 'yellow') {
+                    yellow()
+                }
+                callback()
+
+            },timer)
+
+    }
+
+    const step=()=>{
+        task(3000,'red',()=>{
+            task(2100,'yellow',()=>{
+                task(2000,'green',()=>{
+                    step()
+                })
+            })
+        })
+    }
+
+    step()
+
+
+</script>
+
+</body>
+</html>

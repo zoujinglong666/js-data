@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+  const arr=[
+
+    {
+      createBy:'1',id:"1",test1:'测试1',test2:'测试2'
+    },{
+      createBy:'1',id:"1",test1:'测试1',test2:'测试2'
+    },{
+      index:'3',id:"1",test1:'测试1',test2:'测试2'
+    },{
+      index:'4',id:"1",test1:'测试1',test2:'测试2'
+    },
+  ]
+
+
+
+  var reduce = arr.reduce((acc, item)=>{
+      const {createBy,id,index,...rest}=item;
+      const obj=createBy?item:rest
+      acc.push(obj)
+      return acc
+  },[]);
+  console.log(reduce,'reduce')
+
+  const result=arr.map(item=>{
+      if(!item.createBy){
+          delete item.id
+          delete item.index
+          return item
+      }
+      return item
+
+  })
+  console.log(result)
+
+</script>
+
+</body>
+</html>

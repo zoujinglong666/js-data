@@ -1,0 +1,5186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+
+    html,body{
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .content{
+        flex: 1;
+        overflow-y: scroll;
+    }
+    header,footer{
+        height: 60px;
+        line-height: 60px;
+        text-align: center;
+        background-color: aqua;
+    }
+</style>
+<body>
+
+<header>头部</header>
+<div class="content">
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+    首发于
+    不止前端
+    切换模式
+    写文章
+    登录/注册
+    谈谈Vue的provide/inject
+    谈谈Vue的provide/inject
+    AnLi
+    AnLi
+    17 人赞同了该文章
+    简单的可以把provide/inject对比为React的context，都是为了解决跨层级传递属性的不方便而设立的，跟早期的context一样，一开始provide/inject机制也没有载入官方文档，现在虽然已经写了，但仍是语焉不详，这就是我写本文的目的。
+
+    Hello World
+    看一个最简单的例子，从祖辈组件中拿到传入下来的颜色值
+
+
+    UI界面如上，很简单，祖辈组件还提供了一个单选来改变。
+
+    <template>
+        <div>
+            <label for="red">
+                红色
+                <input type="radio" id="red" value="red" v-model="color" />
+            </label>
+            <br />
+            <label for="greed">
+                绿色
+                <input type="radio" id="green" value="green" v-model="color" />
+            </label>
+            <slot />
+        </div>
+    </template>
+    先看provide，它可以是一个对象，比如
+
+    provide: {
+    color: "green"
+    }
+    在孙子组件中可以顺利的取到这个值，但要注意的是这样子的写法是不能返回Vue实例的响应式数据的，当尝试改为
+
+    provide: {
+    color: this.color, //访问不到Vue实例
+    }
+    发生错误，提示是Uncaught TypeError: Cannot read property 'color' of undefined 。
+
+    一般还是用函数的方式，返回一个传入的对象
+
+    provide() {
+    return {
+    color: this.color,
+    };
+    }
+    但是color不是响应式的，就是说如果我在祖辈组件里选择另外一个颜色，在孙子组件里是拿不到更新后的值的，关于非响应式这一点在下一节详细展开。
+
+    inject用来指定一个数组或者一个对象，数组的话就放provide里字段的名称，而对象的话可以指定
+
+    当前实例中的字段名
+    对应provide里的字段名
+    默认值或者返回默认值的函数
+    const Child = {
+    inject: {
+    foo: {
+    from: 'bar',
+    default: () => [1, 2, 3]
+    }
+    }
+    }
+    不是响应式
+    这个跟React的context是不同的，React没有响应式机制，一旦改变属性后默认会引发层层的渲染，开发者自己通过shouldComponentUpdate来优化。
+
+    官方文档上明确的说了
+
+    provide和inject绑定并不是可响应的。这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的 property 还是可响应的。
+    第一种解决方案是把值转为函数，记得要用箭头函数，不然不能正确获取this
+
+    provide() {
+    return {
+    color: () => {
+    return this.color;
+    },
+    };
+    }
+    然后使用时就要变成了函数的调用
+
+    <template>
+        <div :style="{'color':color()}">传下来的颜色{{color()}}</div>
+    </template>
+    这样子就带来一个很明显的缺点就是由于不是响应式，这个函数将会被调用多次，比如上面模板里有两个color()，可以在函数里打个断点，会发现进来两次。
+
+    更好一些的解决方案是把provide所在的Vue实例给传递下去，再来改造一下
+
+    provide() {
+    return {
+    color: this,
+    };
+    }
+    在孙组件里获得的其实是实例了，所以要多取一层属性
+
+    <template>
+        <div :style="{'color':color.color}">传下来的颜色{{color.color}}</div>
+    </template>
+    可以看到很多UI组件库就是通过这个方式来传递属性的，因为有可能在不确定层级的子组件里要获得祖组件里的值。以ViewUI为例，来康康树形组件的外层
+
+
+    在节点组件里
+
+
+    沿着这条道路再抽象一点，可以在根组件上设置provide，然后统一跟根组件的provide进行交互，这样一来，又似乎抢占了Vuex的地盘，跟Context/useContext抢占Redux的地盘似乎异曲同工。另外，Vue里提供了$root来获得根组件，这样子又像是要跟它再打一架。
+
+    回到出发点，之所以官方文档对此特性语焉不详，就是因为从他们的出发角度看不是特别推荐使用它，同时也怕开发者滥用。而从业务开发的角度来讲，绝大部分场景应该选用Vuex而不是provide/inject。 另外React的Redux背后仍然是用了context（严格的说是react-redux用了），但是由于基础原理不同，Vuex背后是原型链和响应式，并没有用到provide/inject。
+
+    函数式组件使用inject
+    由于函数式组件的一切都是通过context来传递的，不能像普通组件一样来写inject配置，所以对于函数式组件来说，要拿到provide提供的值就要从context.injections字段里去取。
+
+    provide链
+    之所以加一个链字因为就是它的行为跟原型链是一致的——沿着链向上寻找，只要找到就停止。
+
+    我们加入在祖组件和孙组件之间的父组件里，加上
+
+    provide: {
+    color: 'orange'
+    }
+    你会发现现在显示的是橙色了
+
+
+    那么同层的provide会不会有影响呢，修改一下孙组件
+
+    export default {
+    provide: {
+    color: 'blue'
+    },
+    inject: ["color"],
+    };
+    直接揭晓答案，是没有影响的，但是如果定义了data，那么还是会覆盖掉的
+
+    export default {
+    data() {
+    return {
+    color: "blue",
+    };
+    },
+    inject: ["color"],
+    };
+
+    小心内存泄漏!
+    这个问题是最近在实际开发中发现的，其实正中了官方所担心的使用不恰当的问题。
+
+    起因是provide里提供了一个方法，在子组件里调用这个方法，把子组件里的图表实例传递进去Hold住，以便将来调用。这样一来，图表的实例相当于一直存在于内存里而无法被回收掉，没过多久页面就卡顿的不行了。
+
+    原理
+    一句话解释provide/inject机制的原理——向上找寻。
+
+    首先在实例化Vue组件的时候，我们能看到初始化provide和inject的代码
+
+
+    其中initProvide就是在当前实例中放入一个_provided属性
+
+    export function initProvide (vm: Component) {
+    const provide = vm.$options.provide
+    if (provide) {
+    vm._provided = typeof provide === 'function'
+    ? provide.call(vm)
+    : provide
+    }
+    }
+    而initJonjections的核心代码就是沿着$parent向上找寻_provided，这也就是为什么Father组件里一旦有了provide就以它为准了
+
+    export function resolveInject (inject: any, vm: Component): ?Object {
+    if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    const result = Object.create(null)
+    const keys = hasSymbol
+    ? Reflect.ownKeys(inject)
+    : Object.keys(inject)
+
+    for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    // #6574 in case the inject object is observed...
+    if (key === '__ob__') continue
+    const provideKey = inject[key].from
+    let source = vm
+    while (source) {
+    if (source._provided && hasOwn(source._provided, provideKey)) {
+    result[key] = source._provided[provideKey]
+    break
+    }
+    source = source.$parent
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introduction
+    英文博客原文： Vue.js: a (re)introduction Vue.js 是一个用来开发 web 界面的前端库。它也有配套的周边工具。如果把这些东西都算在一起，那么你也可以叫它一个『前端框架』。但我个人更倾…
+
+    尤雨溪
+    发表于Code,...
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    通过 Laravel 创建一个 Vue 单页面应用（一）
+    Summe...
+    发表于PHP /...
+
+
+    选择语言
+
+</div>
+<footer>底部</footer>
+
+</body>
+</html>

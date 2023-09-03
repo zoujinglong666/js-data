@@ -1,0 +1,4408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+  .popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    border: 1px solid black;
+    overflow: hidden;
+  }
+
+  .header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background-color: gray;
+  }
+
+  .content {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    right: 0;
+    bottom: 50px;
+    overflow: auto;
+  }
+
+  .footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background-color: gray;
+  }
+
+</style>
+<body>
+<div class="popup">
+  <div class="header">Header</div>
+  <div class="content">
+    }
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio}
+    if (!source) {
+    if ('default' in inject[key]) {
+    const provideDefault = inject[key].default
+    result[key] = typeof provideDefault === 'function'
+    ? provideDefault.call(vm)
+    : provideDefault
+    } else if (process.env.NODE_ENV !== 'production') {
+    warn(`Injection "${key}" not found`, vm)
+    }
+    }
+    }
+    return result
+    }
+    }
+    发布于 2020-08-15 21:19
+    前端开发
+    前端框架
+    Vue.js
+    ​赞同 17​
+    ​6 条评论
+    ​分享
+    ​喜欢
+    ​收藏
+    ​申请转载
+    ​
+    写下你的评论...
+
+    6 条评论
+    默认
+    最新
+    觅迹寻踪
+    觅迹寻踪
+    参考官网，可以借助computed实现响应式：
+
+    import { computed } from 'vue'
+    export default {
+    data () {
+    return {
+    age: 70,
+    }
+    },
+    provide () {
+    return {
+    age: computed(() => this.age),
+    };
+    },
+    }
+    03-06
+    ​赞
+    Iota233
+    Iota233
+
+    子组件之间的通讯，可以通过provide/inject来实现吗？
+    2021-08-03
+    ​赞
+    zzj
+    zzj
+    说了辣么多，到底什么时候使用provide/inject和vuex
+
+    2021-02-01
+    ​赞
+    Arcret
+    Arcret
+    明确一点provide是非响应的数据，也没办法track，那么就决定它注定不能用于组件通信，和vuex根本没有可比性。至于为什么引入inject，你可以想想当初为什么使用mixin，简单来说就是业务逻辑的抽象，hook的抽象实现固然很好，但是没有必要把难以复用的逻辑抽象成函数，如果只是简单提供给子组件使用，那就使用provide，inject，否则使用hook，vuex不考虑，没人用vuex抽象业务逻辑对吧。
+    2021-05-28
+    ​4
+    我住隔壁我姓王
+    我住隔壁我姓王
+    AnLi
+    那什么时候使用$attrs/$listeners，什么时候使用provide/inject呢？不是很懂
+
+    2021-02-04
+    ​1
+    展开其他 1 条回复​
+    文章被以下专栏收录
+    不止前端
+    不止前端
+    More than Frontend
+    推荐阅读
+    Vue组件通信—provide/inject
+    Vue组件通信—provide/inject
+    徐芋头
+    发表于芋头的co...
+    electron + vue 实践项目
+    electron + vue 实践项目
+    互联网小兵
+    Vue.js：a (re)introductio
+  </div>
+  <div class="footer">Footer</div>
+</div>
+
+</body>
+</html>

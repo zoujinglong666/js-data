@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+
+  const str='nkjsklclhdfkjkdl';
+
+  function countStr(str){
+    const res=[...str].reduce((acc,item)=>{
+
+      if(acc[item]){
+        acc[item]++
+      }else {
+        acc[item]=1
+      }
+      return acc
+
+    },{})
+
+    return res
+  }
+
+  console.log(countStr(str));
+</script>
+
+
+</body>
+</html>

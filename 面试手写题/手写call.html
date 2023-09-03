@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+
+
+    Function.prototype.myCall = function (context) {
+        //首先判断是不是一个函数
+
+        if (typeof this !== 'function') {
+            throw new Error("Type error");
+        }
+        //获取参数
+        let args = [...arguments].slice(1);
+
+        //结果
+        let result = null;
+
+        context = context || window;
+        context.fn=this
+        result = context.fn(...args);
+        delete context.fn;
+        return result
+
+    }
+    var person = {
+        fullName: function() {
+            return this.firstName + " " + this.lastName;
+        }
+    }
+    var person1 = {
+        firstName:"Bill",
+        lastName: "Gates",
+    }
+    var person2 = {
+        firstName:"Steve",
+        lastName: "Jobs",
+    }
+    var myCall = person.fullName.myCall(person1);  // 将返回 "Bill Gates"
+    var call = person.fullName.call(person2);  // 将返回 "Bill Gates"
+    console.log(myCall)
+    console.log(call)
+</script>
+
+</body>
+</html>
